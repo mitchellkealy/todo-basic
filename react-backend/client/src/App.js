@@ -1,14 +1,50 @@
 import './App.css';
-import Card from 'react-bootstrap/Card';
-import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { AddTask } from "./AddTask";
-import React, { useState } from 'react';
+import React from 'react';
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
+import UsingFetch from "./GetTasks";
+import axios from "axios";
+import { useState} from "react";
+
 
 function App(props) {
+
+  const [data, setData] = useState({data: []});
+  const [isLoading, setIsLoading] = useState(false);
+  const [err, setErr] = useState('');
+
+  const handleClick = async () => {
+    setIsLoading(true);
+      return await axios.post('http://localhost:3001/users/list-tasks', {"task1": "eat", "task2": "sleep", "task3": "repeat"})
+          .then(function(response) {
+        console.log(response.data);
+        writeToTextFile(response.data, "YourTasks.txt")
+      })
+          .catch(function(error) {
+            console.log(error);
+          });
+  }
+
+  const writeToTextFile = (text, fileName) => {
+    let textFile = null;
+    const makeTextFile = (text) => {
+      const data = new Blob([text], {
+        type: 'text/plain',
+      });
+      if (textFile !== null) {
+        window.URL.revokeObjectURL(textFile);
+      }
+      textFile = window.URL.createObjectURL(data);
+      return textFile;
+    };
+    const link = document.createElement('a');
+    link.setAttribute('download', fileName);
+    link.href = makeTextFile(text);
+    link.click();
+  };
+
   return (
       <div className="">
         <div className="alert alert-primary alert-dismissible fade show" role="alert">
@@ -128,10 +164,12 @@ function App(props) {
           </li>
         </ul>
         <div style={{paddingBottom: 50}}>
-          <Button variant="white">Back to Top</Button>
+          <Button variant="primary" onClick={handleClick}>Download Tasks</Button>
+          <Button variant="white-outline">Back to Top</Button>
         </div>
       </div>
   );
 }
+
 
 export default App;
